@@ -188,18 +188,18 @@ input::placeholder,textarea::placeholder{color:var(--ink4)}
   </div>
   <div class="main">
     <div>
-      <h2 class="ttl">답변 고맙습니다.<br>AI에 보낼 내용을 만들게요</h2>
-      <p class="sub" style="margin-top:9px">둘 다 <b>복사해서 붙여넣을 내용</b>을 만들어 드려요.<br>차이는 AI가 얼마나 깊게 묻느냐예요.</p>
+      <h2 class="ttl">답변 고맙습니다.<br>이제 어떻게 할까요?</h2>
+      <p class="sub" style="margin-top:9px">바쁘시면 바로 만들어도 충분히 좋은 문구가 나와요.</p>
     </div>
-    <button class="pick" onclick="build('fast')">
-      <h3>빠르게 만들기</h3>
-      <p>붙여넣으면 AI가 바로 매력 후보 3개를 보여줘요. 번호만 고르면 문구 4종이 나옵니다.</p>
-      <span class="t">붙여넣기 1번 · 약 1분</span>
+    <button class="pick" onclick="generate()">
+      <h3>바로 문구 만들기</h3>
+      <p>답변을 그대로 써서 <b>여기서 바로</b> 문구를 만들어 드려요. AI도 복사도 필요 없어요.</p>
+      <span class="t">지금 바로 · 사장님이 쓰신 말 그대로</span>
     </button>
     <button class="pick hi" onclick="build('deep')">
       <h3>더 깊게 파보기</h3>
       <p>AI가 꼬리질문을 3~5개 먼저 해요. “우리 가게는 ___한 손님을 위한 ___입니다” 한 줄과 강점 3개가 나오고, 그게 문구의 중심이 됩니다.</p>
-      <span class="t">붙여넣기 1번 + 대화 5분 · 결과가 또렷해져요</span>
+      <span class="t">AI에 붙여넣기 + 대화 5분 · 결과가 또렷해져요</span>
     </button>
     <div class="hint">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B3FF0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
@@ -235,7 +235,7 @@ input::placeholder,textarea::placeholder{color:var(--ink4)}
       <a class="btn sec" style="flex:1" href="https://claude.ai/new" target="_blank" rel="noopener">클로드 열기</a>
       <a class="btn sec" style="flex:1" href="https://chatgpt.com/" target="_blank" rel="noopener">챗GPT 열기</a>
     </div>
-    <button class="btn sec" onclick="go(4)">AI 결과 받았어요 · 배민에 넣기</button>
+    <button class="btn sec" onclick="pasteMode()">AI 결과 받았어요 · 배민에 넣기</button>
   </div>
 </section>
 
@@ -243,20 +243,22 @@ input::placeholder,textarea::placeholder{color:var(--ink4)}
 <section class="scr" id="sr">
   <div class="bar">
     <div class="barTop">
-      <button class="back" onclick="go(3)" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="back" onclick="go(window.__from==='sp'?3:2)" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
       <span class="step">배민에 넣기</span><span style="width:40px"></span>
     </div>
   </div>
   <div class="main">
     <div>
-      <h2 class="ttl">AI가 준 결과를<br>여기 붙여넣으세요</h2>
-      <p class="sub" style="margin-top:9px">항목별로 나눠서, 배민 어디에 넣는지와 함께 정리해 드려요.</p>
+      <h2 class="ttl" id="rttl">문구가 만들어졌어요</h2>
+      <p class="sub" style="margin-top:9px" id="rsub">항목마다 배민 어디에 넣는지 적어뒀어요. 복사해서 그대로 붙여넣으세요.</p>
     </div>
-    <div class="fld">
-      <label for="rin">AI 답변 전체 붙여넣기</label>
-      <textarea id="rin" style="min-height:120px" placeholder="AI가 준 답변을 드래그해서 전부 복사한 다음 여기 붙여넣으세요."></textarea>
+    <div id="rpaste" hidden>
+      <div class="fld">
+        <label for="rin">AI 답변 전체 붙여넣기</label>
+        <textarea id="rin" style="min-height:120px" placeholder="AI가 준 답변을 드래그해서 전부 복사한 다음 여기 붙여넣으세요."></textarea>
+      </div>
+      <button class="btn" style="margin-top:10px" onclick="parseResult()">정리하기</button>
     </div>
-    <button class="btn" onclick="parseResult()">정리하기</button>
     <div id="rout" style="display:flex;flex-direction:column;gap:12px"></div>
   </div>
   <div class="foot">
@@ -539,6 +541,88 @@ async function copyPrompt(){
     a.remove();
   }
 }
+/* ---------- 바로 문구 만들기 (사이트 안에서 5W로 생성) ---------- */
+const WHERE={
+ first:'배민사장님광장 → 가게 정보 → 가게 알림의 첫 줄',
+ body:'가게 알림에서 첫 줄 아래로 이어 붙이세요',
+ cut:'가게 정보 → 가게 소개(콘텐츠보드)의 사진 위 문구',
+ intro:'가게 정보 → 가게 소개의 소개글 칸'
+};
+/* 사장님이 쓴 문장에서 말투를 읽는다 */
+function tone(){
+  const s=(D.effD+' '+D.msg+' '+D.rv.join(' '));
+  const yo=(s.match(/요[.!?]?(\s|$)/g)||[]).length;
+  const da=(s.match(/니다[.!?]?(\s|$)/g)||[]).length;
+  return yo>da ? 'yo' : 'da';
+}
+const T=()=>tone()==='yo'
+ ? {ip:'이에요',hap:'해요',mand:'만들어요',ssm:'써요',dr:'드려요',im:'입니다'}
+ : {ip:'입니다',hap:'합니다',mand:'만듭니다',ssm:'씁니다',dr:'드립니다',im:'입니다'};
+/* 사장님 문장 끝을 살짝 정리 (내용은 건드리지 않음) */
+const trim1=s=>String(s||'').trim().replace(/[.。]+$/,'');
+const shortest=a=>a.slice().sort((x,y)=>x.length-y.length)[0];
+
+function generate(){
+  save();
+  const e=T(), b=[];
+  const eff1=trim1(D.effD)||trim1(D.eff[0]);
+  const eff2=trim1(D.eff.find(x=>x!==D.eff[0]))||trim1(D.eff[1]);
+  const menu=trim1(D.menu)||'대표 메뉴';
+  const shop=trim1(D.shop)||'저희 가게';
+  const rec=trim1(D.recD);
+  const rv=D.rv.map(trim1).filter(Boolean);
+  const gift=D.ev==='있어요'?trim1(D.evD):'';
+  const msg=trim1(D.msg);
+
+  /* 알림 첫 줄 — 서로 다른 유형으로 최대 3안 */
+  const firsts=[];
+  if(eff1) firsts.push({t:'굳이 하는 수고', v:eff1});
+  if(rv.length) firsts.push({t:'손님의 말', v:'"'+shortest(rv)+'"'});
+  if(rec) firsts.push({t:'숫자 증명', v:rec});
+  if(gift) firsts.push({t:'지금 이득', v:gift});
+  if(msg&&firsts.length<3) firsts.push({t:'사장님 한마디', v:msg});
+  firsts.slice(0,3).forEach((f,n)=>b.push({
+    title:`가게 알림 첫 줄 ${n+1}안 · ${f.t}`, where:WHERE.first, max:30, body:f.v}));
+
+  /* 알림 본문 — 멈추기 → 공감 → 궁금 → 설득 → 행동 */
+  const L=[];
+  if(firsts[0]) L.push(firsts[0].v+'.');
+  if(rv[1]) L.push('','손님들이 "'+rv[1]+'" 하고 말씀해 주십니다.');
+  else if(rv[0]) L.push('','손님들이 "'+rv[0]+'" 하고 말씀해 주십니다.');
+  if(eff1){ L.push('','이유가 있습니다.'); L.push(eff1+'.'); }
+  if(eff2) L.push(eff2+'.');
+  if(rec) L.push('', rec+'.');
+  if(msg) L.push('', msg+'.');
+  if(gift) L.push('', gift+'.');
+  if(L.length) b.push({title:'가게 알림 본문', where:WHERE.body, max:500, body:L.join('\n').trim()});
+
+  /* 콘텐츠보드 4컷 — 역할 고정 */
+  const cuts=[
+    {r:'1컷 · 만드는 사람', shoot:'사장님 얼굴이나 만드는 손', v: rec||(shop+'에서 직접 '+e.mand)},
+    {r:'2컷 · 대표 메뉴', shoot:'한 그릇(또는 단면) 클로즈업', v: menu},
+    {r:'3컷 · 굳이 하는 수고', shoot:'만드는 과정, 움직이는 사진(GIF)도 좋아요', v: eff1||('재료부터 직접 '+e.hap)},
+    {r:'4컷 · 같이 시킬 이유', shoot:'사이드 메뉴나 리뷰 선물 완성컷', v: gift||eff2||('매일 새로 '+e.mand)}
+  ];
+  cuts.forEach(c=>{ if(c.v) b.push({title:c.r, where:'찍을 것 — '+c.shoot+' · '+WHERE.cut, max:24, body:c.v}); });
+
+  /* 가게 소개글 — 누구 → 무엇 → 왜 */
+  const I=[];
+  I.push(shop+'은 '+(trim1(D.area)?trim1(D.area)+'에서 ':'')+menu+'를 하는 집'+e.ip+'.');
+  if(eff1) I.push('', eff1+'.');
+  if(eff2) I.push(eff2+'.');
+  if(msg) I.push('', msg+'.');
+  if(rv[0]) I.push('', '손님 말씀 — "'+rv[0]+'"');
+  if(rec) I.push('', rec);
+  b.push({title:'가게 소개글', where:WHERE.intro, max:500, body:I.join('\n').trim()});
+
+  $('#rttl').textContent='문구가 만들어졌어요';
+  $('#rsub').innerHTML='사장님이 쓰신 말을 <b>그대로</b> 옮긴 곳이 많아요. 어색한 곳은 고쳐서 쓰세요.<br>더 다듬고 싶으면 뒤로 가서 <b>더 깊게 파보기</b>를 써 보세요.';
+  $('#rpaste').hidden=true;
+  window.__from='sd';
+  renderBlocks(b);
+  go(4);
+}
+
 /* ---------- AI 결과 정리 ---------- */
 const SLOT=[
  {re:/알림\s*첫\s*줄/, name:'가게 알림 첫 줄', where:'배민사장님광장 → 가게 정보 → 가게 알림의 첫 줄', max:30},
@@ -547,6 +631,14 @@ const SLOT=[
  {re:/소개글/, name:'가게 소개글', where:'가게 정보 → 가게 소개의 소개글 칸', max:500},
  {re:/확인해\s*주세요|검수/, name:'확인할 것', where:'등록 전에 숫자와 사실을 직접 확인하세요', max:0}
 ];
+function pasteMode(){
+  $('#rttl').textContent='AI가 준 결과를 여기 붙여넣으세요';
+  $('#rsub').textContent='항목별로 나눠서, 배민 어디에 넣는지와 함께 정리해 드려요.';
+  $('#rpaste').hidden=false;
+  $('#rout').innerHTML='';
+  window.__from='sp';
+  go(4);
+}
 function parseResult(){
   const raw=$('#rin').value.trim();
   const out=$('#rout');
@@ -563,6 +655,11 @@ function parseResult(){
             where: slot?slot.where:'', max: slot?slot.max:0, body};
   }).filter(b=>b.body);
   if(!blocks.length){toast('나눌 수 없었어요. 전체를 복사해 보세요');return;}
+  renderBlocks(blocks);
+  toast(blocks.length+'개 항목으로 나눴어요');
+}
+function renderBlocks(blocks){
+  const out=$('#rout');
   out.innerHTML = blocks.map((b,n)=>{
     const len=b.body.replace(/\s/g,'').length;
     const over = b.max && len>b.max;
@@ -577,7 +674,6 @@ function parseResult(){
   }).join('');
   window.__blocks=blocks;
   out.querySelectorAll('[data-n]').forEach(btn=>btn.onclick=()=>copyText(window.__blocks[+btn.dataset.n].body));
-  toast(blocks.length+'개 항목으로 나눴어요');
 }
 async function copyText(t){
   try{await navigator.clipboard.writeText(t);toast('복사됐어요');}
