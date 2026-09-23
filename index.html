@@ -224,8 +224,8 @@ input::placeholder,textarea::placeholder{color:var(--ink4)}
       <p class="sub" style="margin-top:9px">복사해서 AI 채팅창에 한 번만 붙여넣으면, 거기서부터 이어집니다.</p>
     </div>
     <div class="steps3">
-      <div class="s3"><i>1</i><p><b>아래 복사 버튼</b>을 누르세요</p></div>
-      <div class="s3"><i>2</i><p><b>클로드</b>나 <b>챗GPT</b>를 열어 붙여넣고 보내세요</p></div>
+      <div class="s3"><i>1</i><p>아래에서 <b>클로드</b>나 <b>챗GPT</b>를 고르세요. 복사는 같이 돼요</p></div>
+      <div class="s3"><i>2</i><p>열린 채팅창에 <b>붙여넣고</b> 보내세요</p></div>
       <div class="s3"><i>3</i><p id="p3"><b>AI가 묻는 말에 답하면</b> 문구가 완성돼요</p></div>
     </div>
     <div class="pbox"><pre id="ptext"></pre></div>
@@ -234,8 +234,8 @@ input::placeholder,textarea::placeholder{color:var(--ink4)}
   <div class="foot">
     <button class="btn dark" onclick="copyPrompt()">프롬프트 복사하기</button>
     <div style="display:flex;gap:8px">
-      <a class="btn sec" style="flex:1" href="https://claude.ai/new" target="_blank" rel="noopener">클로드 열기</a>
-      <a class="btn sec" style="flex:1" href="https://chatgpt.com/" target="_blank" rel="noopener">챗GPT 열기</a>
+      <a class="btn sec" style="flex:1" href="https://claude.ai/new" target="_blank" rel="noopener" onclick="return goAI(this)">클로드로 보내기</a>
+      <a class="btn sec" style="flex:1" href="https://chatgpt.com/" target="_blank" rel="noopener" onclick="return goAI(this)">챗GPT로 보내기</a>
     </div>
     <button class="btn sec" onclick="pasteMode()">AI 결과 받았어요 · 배민에 넣기</button>
   </div>
@@ -531,6 +531,15 @@ function build(m){
   $('#pmode').textContent=m==='deep'?'강점 찾기 + 문구':'문구 만들기';
   $('#p3').innerHTML=m==='deep'?'<b>AI가 꼬리질문을 합니다.</b> 편하게 답하시면 돼요':'<b>AI가 매력 후보 3개를 보여줘요.</b> 번호만 고르시면 돼요';
   go(3);
+}
+/* AI 앱 열기 — 새 탭을 먼저 띄우고(사용자 동작이 살아 있을 때) 복사한다.
+   새 탭이 막히면 false를 안 돌려서 링크 기본 동작에 맡긴다. */
+function goAI(a){
+  let w=null;
+  try{ w=window.open(a.href,'_blank'); }catch(e){}
+  if(w){ try{ w.opener=null; }catch(e){} }
+  copyPrompt();
+  return w ? false : true;
 }
 async function copyPrompt(){
   const t=$('#ptext').textContent;
