@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>가게소개 도우미</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --mint:#2AC1BC; --mint-d:#17A7A2; --mint-t:#EDF9F9; --mint-deep:#0E7C79;
+  --ink:#16181A; --ink2:#5A6068; --ink3:#8B929B; --ink4:#B4BAC2;
+  --line:#EDEFF2; --line2:#E1E5EA; --bg:#F6F7F9; --paper:#fff;
+  --violet:#5B3FF0; --violet-t:#F2EFFF; --pink:#F04FB5; --star:#FFB800;
+  --f:'Pretendard','Pretendard Variable',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --r:12px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);-webkit-font-smoothing:antialiased;
+  height:100dvh;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0}
+.app{width:100%;max-width:440px;height:100%;background:var(--paper);
+  overflow:hidden;display:flex;flex-direction:column;position:relative}
+@media (min-width:560px) and (min-height:640px){
+  body{background:var(--bg);padding:20px}
+  .app{border-radius:20px;border:1px solid var(--line2)}
+}
+.scr{display:none;flex-direction:column;height:100%}
+.scr.on{display:flex}
+
+/* 상단 */
+.bar{padding:calc(12px + env(safe-area-inset-top,0px)) 20px 0;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+.barTop{display:flex;align-items:center;justify-content:space-between;height:40px}
+.back{width:40px;height:40px;margin-left:-10px;border:0;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:10px}
+.back:hover{background:var(--bg)}
+.step{font-size:13px;font-weight:600;color:var(--ink3);letter-spacing:-.01em}
+.track{height:4px;background:var(--line);border-radius:99px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--mint);border-radius:99px;transition:width .35s cubic-bezier(.4,0,.2,1)}
+
+/* 본문 */
+.main{flex:1;min-height:0;overflow-y:auto;padding:24px 20px 16px;display:flex;flex-direction:column;gap:18px}
+.main::-webkit-scrollbar{width:0}
+h1,h2,h3{margin:0;letter-spacing:-.025em}
+.ttl{font-size:23px;font-weight:700;line-height:1.4}
+.sub{font-size:14px;color:var(--ink2);line-height:1.6;margin:0;letter-spacing:-.01em}
+
+/* 입력 */
+.fld{display:flex;flex-direction:column;gap:7px}
+.fld label{font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:-.01em}
+input,textarea{width:100%;padding:13px 14px;border:1px solid var(--line2);border-radius:10px;
+  font:400 15px var(--f);color:var(--ink);background:var(--paper);letter-spacing:-.01em}
+textarea{min-height:88px;resize:vertical;line-height:1.6}
+input:focus,textarea:focus{outline:none;border-color:var(--mint);box-shadow:0 0 0 3px var(--mint-t)}
+input::placeholder,textarea::placeholder{color:var(--ink4)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:42px;padding:0 15px;border-radius:99px;border:1px solid var(--line2);background:var(--paper);
+  color:var(--ink);font:500 14.5px var(--f);cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:-.01em}
+.chip:hover{border-color:var(--ink4)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.chip.on svg{display:block}
+.chip svg{display:none}
+
+/* 리뷰 */
+.rvTop{display:flex;align-items:center;justify-content:space-between}
+.rvTop span{font-size:13px;font-weight:600;color:var(--ink2)}
+.rvTop b{color:var(--mint-deep)}
+.addBtn{height:34px;padding:0 13px;border-radius:8px;border:1px solid var(--line2);background:var(--paper);
+  font:600 13px var(--f);color:var(--ink);cursor:pointer}
+.addBtn:hover{background:var(--bg)}
+.rv{display:flex;gap:8px;padding:11px 12px;background:var(--bg);border-radius:10px;font-size:13.5px;line-height:1.55}
+.rv p{margin:0;flex:1;color:var(--ink)}
+.rvDel{width:24px;height:24px;flex-shrink:0;border:0;border-radius:50%;background:var(--line);color:var(--ink3);
+  font-size:15px;line-height:1;cursor:pointer}
+.rvDel:hover{background:var(--line2);color:var(--ink)}
+
+/* 힌트 */
+.hint{display:flex;gap:9px;padding:12px 13px;background:var(--violet-t);border-radius:10px;
+  font-size:13px;line-height:1.55;color:var(--ink2);letter-spacing:-.01em}
+.hint b{color:var(--violet)}
+.hint svg{flex-shrink:0;margin-top:1px}
+
+/* 하단 */
+.foot{padding:13px 20px calc(18px + env(safe-area-inset-bottom,0px));flex-shrink:0;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);background:var(--paper)}
+.btn{height:52px;border-radius:12px;border:0;background:var(--mint);color:#fff;font:600 16px var(--f);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;letter-spacing:-.015em;text-decoration:none}
+.btn:hover{background:var(--mint-d)}
+.btn:disabled{background:var(--line2);color:var(--ink4);cursor:default}
+.btn.sec{background:var(--paper);color:var(--ink);border:1px solid var(--line2);height:48px;font-size:15px}
+.btn.sec:hover{background:var(--bg)}
+.btn.dark{background:var(--ink)}.btn.dark:hover{background:#000}
+.txtBtn{height:40px;border:0;background:none;color:var(--ink3);font:400 13.5px var(--f);cursor:pointer;text-decoration:underline}
+.txtBtn:hover{color:var(--ink2)}
+.fine{font-size:11.5px;color:var(--ink4);text-align:center;line-height:1.55}
+
+/* 시작 화면 */
+.hero{padding:calc(34px + env(safe-area-inset-top,0px)) 24px 26px;background:var(--mint);color:#fff;flex-shrink:0}
+.tag{display:inline-block;background:rgba(255,255,255,.2);font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;margin-bottom:12px}
+.hero h1{font-size:28px;font-weight:800;line-height:1.3;margin-bottom:7px}
+.hero p{margin:0;font-size:14px;line-height:1.6;color:#D9F6F5}
+.card4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.t4{padding:14px;border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;gap:5px}
+.t4 b{font-size:14.5px;font-weight:600;letter-spacing:-.02em}
+.t4 span{font-size:12px;color:var(--ink3);line-height:1.45}
+.lab{font-size:13px;font-weight:600;color:var(--ink3);letter-spacing:-.01em}
+.flow{padding:14px 15px;background:var(--bg);border-radius:var(--r);font-size:13.5px;line-height:1.75;color:var(--ink2)}
+.flow b{color:var(--ink)}
+
+/* 선택 카드 */
+.pick{width:100%;text-align:left;padding:18px;border-radius:14px;border:1px solid var(--line2);background:var(--paper);
+  font-family:var(--f);cursor:pointer;display:flex;flex-direction:column;gap:7px}
+.pick:hover{border-color:var(--mint)}
+.pick.hi{background:var(--mint);border-color:var(--mint);color:#fff}
+.pick h3{font-size:18px;font-weight:700}
+.pick p{margin:0;font-size:13.5px;line-height:1.6;color:var(--ink2)}
+.pick.hi p{color:#DFF7F6}
+.pick .t{font-size:12px;font-weight:600;color:var(--ink3)}
+.pick.hi .t{color:#B5EDEB}
+
+/* 프롬프트 화면 */
+.pbox{background:#16181A;border-radius:12px;padding:14px;flex:1;min-height:110px;overflow-y:auto}
+.pbox pre{margin:0;font:400 11.5px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;color:#D8DDE3;white-space:pre-wrap;word-break:break-all}
+.steps3{display:flex;flex-direction:column;gap:10px}
+.s3{display:flex;gap:11px;align-items:flex-start}
+.s3 i{width:22px;height:22px;flex-shrink:0;border-radius:50%;background:var(--mint-t);color:var(--mint-deep);
+  font:600 12px var(--f);font-style:normal;display:flex;align-items:center;justify-content:center}
+.s3 p{margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2)}
+.s3 b{color:var(--ink)}
+
+.toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%) translateY(6px);z-index:9;
+  background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:11px 17px;border-radius:99px;
+  opacity:0;transition:.22s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="toast" id="toast">복사됐어요</div>
+
+<!-- 시작 -->
+<section class="scr on" id="s0">
+  <div class="hero">
+    <span class="tag">배민 사장님을 위한 딸깍 AI</span>
+    <h1>가게소개 도우미</h1>
+    <p>질문 7개에 답하면 가게 알림 첫 줄부터<br>콘텐츠보드 4컷 문구까지 한 번에 나와요</p>
+  </div>
+  <div class="main">
+    <div class="lab">이런 게 나와요</div>
+    <div class="card4">
+      <div class="t4"><b>가게 알림 첫 줄</b><span>손님 눈을 멈추게 하는 한 줄, 3개</span></div>
+      <div class="t4"><b>콘텐츠보드 4컷</b><span>뭘 찍을지, 사진 위에 뭐라 쓸지</span></div>
+      <div class="t4"><b>가게 소개글</b><span>그대로 붙여넣는 소개글</span></div>
+      <div class="t4"><b>가게 알림 본문</b><span>첫 줄 아래 이어지는 글</span></div>
+    </div>
+    <div class="flow"><b>진행 순서</b><br>① 가게 이야기 답하기 · 약 3분<br>② 원하면 더 깊게, 강점 찾기<br>③ 완성된 프롬프트를 AI에 붙여넣기</div>
+    <p class="sub">글쓰기 어려우셔도 괜찮아요. 대부분 고르기만 하면 돼요.<br>답변은 이 브라우저 안에만 있고 어디에도 저장되지 않아요.</p>
+  </div>
+  <div class="foot">
+    <button class="btn" onclick="go(1)">시작하기</button>
+    <div class="fine">배달의민족 공식 서비스가 아닌 캠프 과제 도구입니다 · 배민 콘텐츠보드 규격 반영</div>
+  </div>
+</section>
+
+<!-- 질문 -->
+<section class="scr" id="sq">
+  <div class="bar">
+    <div class="barTop">
+      <button class="back" onclick="prev()" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span class="step" id="qn">1 / 7</span><span style="width:40px"></span>
+    </div>
+    <div class="track"><i id="qbar" style="width:14%"></i></div>
+  </div>
+  <div class="main" id="qmain"></div>
+  <div class="foot">
+    <button class="btn" id="qnext" onclick="next()">다음</button>
+    <button class="txtBtn" id="qeasy" onclick="easier()">잘 모르겠어요 · 더 쉬운 질문으로</button>
+  </div>
+</section>
+
+<!-- 선택 -->
+<section class="scr" id="sd">
+  <div class="bar">
+    <div class="barTop">
+      <button class="back" onclick="go(1,6)" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span class="step">질문 끝</span><span style="width:40px"></span>
+    </div>
+    <div class="track"><i style="width:100%"></i></div>
+  </div>
+  <div class="main">
+    <div>
+      <h2 class="ttl">답변 고맙습니다.<br>이제 어떻게 할까요?</h2>
+      <p class="sub" style="margin-top:9px">바쁘시면 바로 만들어도 충분히 좋은 문구가 나와요.</p>
+    </div>
+    <button class="pick" onclick="build('fast')">
+      <h3>바로 문구 만들기</h3>
+      <p>답변과 리뷰로 매력을 뽑아 문구 4종을 만들어요.</p>
+      <span class="t">약 1분</span>
+    </button>
+    <button class="pick hi" onclick="build('deep')">
+      <h3>더 깊게 파볼까요?</h3>
+      <p>AI가 꼬리질문을 3~5개 더 해요. “우리 가게는 ___한 손님을 위한 ___입니다” 한 줄과 강점 3개가 먼저 나오고, 그게 문구의 중심이 됩니다.</p>
+      <span class="t">5분 더 · 결과가 또렷해져요</span>
+    </button>
+    <div class="hint">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B3FF0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div><b>꼬리질문 예시</b> “단골이 다른 집 대신 우리 집에 오는 이유를 딱 하나만 꼽으면요?” “동네 다른 가게가 못 따라 하는 게 있다면요?”</div>
+    </div>
+  </div>
+</section>
+
+<!-- 프롬프트 -->
+<section class="scr" id="sp">
+  <div class="bar">
+    <div class="barTop">
+      <button class="back" onclick="go(2)" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span class="step" id="pmode">완성됐어요</span><span style="width:40px"></span>
+    </div>
+  </div>
+  <div class="main">
+    <div>
+      <h2 class="ttl">프롬프트가 만들어졌어요</h2>
+      <p class="sub" style="margin-top:9px">복사해서 AI 채팅창에 한 번만 붙여넣으면, 거기서부터 이어집니다.</p>
+    </div>
+    <div class="steps3">
+      <div class="s3"><i>1</i><p><b>아래 복사 버튼</b>을 누르세요</p></div>
+      <div class="s3"><i>2</i><p><b>클로드</b>나 <b>챗GPT</b>를 열어 붙여넣고 보내세요</p></div>
+      <div class="s3"><i>3</i><p id="p3"><b>AI가 묻는 말에 답하면</b> 문구가 완성돼요</p></div>
+    </div>
+    <div class="pbox"><pre id="ptext"></pre></div>
+    <p class="fine" style="text-align:left">위 내용 전체가 복사됩니다 · <span id="plen"></span></p>
+  </div>
+  <div class="foot">
+    <button class="btn dark" onclick="copyPrompt()">프롬프트 복사하기</button>
+    <div style="display:flex;gap:8px">
+      <a class="btn sec" style="flex:1" href="https://claude.ai/new" target="_blank" rel="noopener">클로드 열기</a>
+      <a class="btn sec" style="flex:1" href="https://chatgpt.com/" target="_blank" rel="noopener">챗GPT 열기</a>
+    </div>
+    <button class="txtBtn" onclick="go(0)">처음부터 다시</button>
+  </div>
+</section>
+</div>
+
+<script>
+/* ---------- 질문 ---------- */
+const Q=[
+{k:'shop',t:'가게 이름과 동네를\n알려주세요',s:'배민에 등록된 이름 그대로면 돼요.',e:'배민 앱에 나오는 우리 가게 이름이 뭐예요?',
+ f:[{k:'shop',l:'가게 이름',p:'예) 김씨육면'},{k:'area',l:'동네',p:'예) 의정부 민락동'}]},
+{k:'menu',t:'어떤 음식을 파세요?\n제일 자신 있는 메뉴 하나만요',s:'손님이 처음 시키면 좋겠는 그 메뉴요.',e:'단골이 제일 많이 시키는 메뉴가 뭐예요?',
+ c:{k:'cat',o:['한식','중식','일식','분식','치킨','피자','양식','카페·디저트','기타'],one:true},
+ f:[{k:'menu',l:'대표 메뉴',p:'예) 청직화우삼겹쌀국수'}]},
+{k:'rv',t:'손님 리뷰 중 보여주고 싶은 걸\n5개만 골라주세요',s:'배민·네이버 리뷰를 그대로 붙여넣으면 돼요. 3개만 있어도 괜찮아요.',e:'손님이 계산하면서 뭐라고 하세요? 기억나는 말 하나면 돼요.',
+ rv:true, h:'AI가 5개를 읽고 “5건 중 3건에서 속이 편하다고 하셨어요”처럼 반복되는 말을 찾아줘요. 그게 우리 가게 강점이에요.'},
+{k:'eff',t:'번거로워도\n굳이 직접 하는 일이 있나요?',s:'사장님한텐 당연한 일이 손님한텐 자랑거리예요. 다 골라주세요.',e:'아침에 가게 와서 제일 먼저 하는 일이 뭐예요?',
+ c:{k:'eff',o:['육수를 매일 새로 끓여요','재료를 직접 손질해요','소스를 직접 만들어요','반죽을 직접 해요','당일 재료만 써요','주문 들어오면 그때 조리해요','안 쓰는 재료가 있어요']},
+ f:[{k:'effD',l:'조금 더 자세히 (선택)',p:'예) 새우 하나하나 손질해서 두 번 튀겨요'}],
+ h:'여기 적으신 말투가 그대로 문구 말투가 돼요. 편하게 쓰시면 돼요.'},
+{k:'rec',t:'자랑해도 되는\n기록이 있나요?',s:'없으면 “아직 없어요”를 골라도 좋은 문구가 나와요.',e:'방송에 나왔거나, 몇 년째 하고 계세요?',
+ c:{k:'rec',o:['방송 출연','장사한 햇수','단골·재주문 많음','지역 순위','수상','아직 없어요']},
+ f:[{k:'recD',l:'숫자가 있으면 적어주세요 (선택)',p:'예) 방송 5회, 국수 경력 12년'}],
+ h:'적으신 숫자만 씁니다. 없는 숫자는 만들지 않아요.'},
+{k:'ev',t:'지금 하는 이벤트나\n리뷰 선물이 있나요?',s:'없으면 “없어요”를 눌러주세요.',e:'리뷰 쓰면 뭐 주세요?',
+ c:{k:'ev',o:['있어요','없어요'],one:true},
+ f:[{k:'evD',l:'선물 이름 (선택)',p:'예) 리뷰 작성 시 닭안심튀김 증정'}]},
+{k:'msg',t:'손님께 꼭 하고 싶은\n한마디가 있나요?',s:'건너뛰어도 돼요. 편하게 말하듯 쓰시면 돼요.',e:'우리 가게가 어떤 가게였으면 좋겠어요?',
+ a:{k:'msg',l:'한마디 (선택)',p:'예) 베스트셀러보다 스테디셀러가 되고 싶습니다'},
+ h:'이 문장이 사장님 말투를 읽는 가장 중요한 단서예요.'}
+];
+const D={shop:'',area:'',cat:'',menu:'',rv:[],eff:[],effD:'',rec:[],recD:'',ev:'',evD:'',msg:''};
+let i=0, easy=false, mode='fast';
+const $=s=>document.querySelector(s), esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+function go(n,step){
+  document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
+  if(n===0){$('#s0').classList.add('on');}
+  else if(n===1){i=step??0;easy=false;draw();$('#sq').classList.add('on');}
+  else if(n===2){$('#sd').classList.add('on');}
+  else {$('#sp').classList.add('on');}
+  const m=document.querySelector('.scr.on .main'); if(m)m.scrollTop=0;
+}
+function draw(){
+  const q=Q[i];
+  $('#qn').textContent=(i+1)+' / 7';
+  $('#qbar').style.width=Math.round((i+1)/7*100)+'%';
+  let h=`<div><h2 class="ttl">${esc(easy?q.e:q.t).replace(/\n/g,'<br>')}</h2><p class="sub" style="margin-top:9px">${esc(q.s)}</p></div>`;
+  if(q.c){
+    h+=`<div class="chips" data-one="${!!q.c.one}" data-k="${q.c.k}">`+q.c.o.map(o=>
+      `<button class="chip${(D[q.c.k]||[]).includes?.(o)||D[q.c.k]===o?' on':''}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>${esc(o)}</button>`).join('')+`</div>`;
+  }
+  (q.f||[]).forEach(f=>h+=`<div class="fld"><label for="${f.k}">${esc(f.l)}</label><input id="${f.k}" type="text" value="${esc(D[f.k]||'')}" placeholder="${esc(f.p)}"></div>`);
+  if(q.a)h+=`<div class="fld"><label for="${q.a.k}">${esc(q.a.l)}</label><textarea id="${q.a.k}" placeholder="${esc(q.a.p)}">${esc(D[q.a.k]||'')}</textarea></div>`;
+  if(q.rv){
+    h+=`<div class="fld"><label for="rvin">리뷰 붙여넣기</label><textarea id="rvin" placeholder="리뷰를 붙여넣으세요. 여러 개면 줄을 바꿔서 넣으시면 한 번에 들어갑니다."></textarea></div>
+    <div class="rvTop"><span>고른 리뷰 <b id="rvc">${D.rv.length}</b> / 5</span><button class="addBtn" onclick="addRv()">리뷰 추가</button></div>
+    <div id="rvlist" style="display:flex;flex-direction:column;gap:8px"></div>`;
+  }
+  if(q.h)h+=`<div class="hint"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B3FF0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><div><b>참고</b> ${esc(q.h)}</div></div>`;
+  $('#qmain').innerHTML=h;
+  if(q.rv)drawRv();
+  $('#qnext').textContent=i===6?'다 됐어요':'다음';
+  $('#qeasy').style.display=easy?'none':'block';
+}
+$('#qmain').addEventListener('click',e=>{
+  const c=e.target.closest('.chip'); if(!c)return;
+  const box=c.parentElement, k=box.dataset.k, v=c.textContent.trim();
+  if(box.dataset.one==='true'){box.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');D[k]=v;}
+  else{c.classList.toggle('on');D[k]=[...box.querySelectorAll('.chip.on')].map(x=>x.textContent.trim());}
+});
+function drawRv(){
+  $('#rvlist').innerHTML=D.rv.map((r,n)=>`<div class="rv"><p>${esc(r)}</p><button class="rvDel" onclick="delRv(${n})" aria-label="삭제">×</button></div>`).join('');
+  $('#rvc').textContent=D.rv.length;
+}
+function addRv(){
+  const t=$('#rvin'), lines=t.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){toast('먼저 리뷰를 붙여넣어 주세요');return;}
+  const room=5-D.rv.length;
+  if(room<=0){toast('5개까지만 고를 수 있어요');return;}
+  D.rv.push(...lines.slice(0,room)); t.value=''; drawRv();
+}
+function delRv(n){D.rv.splice(n,1);drawRv();}
+function save(){
+  const q=Q[i];
+  (q.f||[]).forEach(f=>{const el=document.getElementById(f.k); if(el)D[f.k]=el.value.trim();});
+  if(q.a){const el=document.getElementById(q.a.k); if(el)D[q.a.k]=el.value.trim();}
+}
+function next(){save(); if(i===6)go(2); else{i++;easy=false;draw();document.querySelector('.scr.on .main').scrollTop=0;}}
+function prev(){save(); if(i===0)go(0); else{i--;easy=false;draw();}}
+function easier(){save();easy=true;draw();}
+let tt; function toast(m){const t=$('#toast');t.textContent=m||'복사됐어요';t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1600);}
+
+/* ---------- 프롬프트 ---------- */
+const P=()=>`당신은 배달의민족 가게 화면 카피라이팅 전문가입니다. 상대는 마케팅과 AI가 처음인 음식점 사장님입니다. 어려운 말을 쓰지 않고, 질문은 한 번에 하나만 하고, 사장님이 준 재료로만 씁니다.
+
+【규격】
+· 가게 알림 첫 줄: 30자 안쪽 (가게 홈에 한 줄로 노출, 넘치면 잘림)
+· 콘텐츠보드 4컷 문구: 두 줄, 한 줄 12자 안쪽 / 핵심은 앞 20자 안에
+· 가게 소개글: 300~500자
+· 가게 알림 본문: 300~500자
+
+【이론 0】사람이 쓴 문장으로 만드는 법 — 다른 모든 규칙보다 우선
+문구가 실패하는 가장 흔한 이유는 'AI가 쓴 것 같아서'입니다. 아래 일곱 가지를 반드시 지킵니다.
+
+0-1. 사장님 말을 다듬지 않는다
+입력값의 표현이 이미 문장으로 읽히면 거의 그대로 씁니다. 예쁘게 고치려는 충동을 참습니다.
+  나쁨: "엄선된 새우를 두 번 튀겨내 더욱 바삭하게"
+  좋음: "새우, 하나하나 손질해서 두 번 튀깁니다"
+
+0-2. 옆 가게 테스트
+가게 이름과 메뉴만 바꿔도 말이 되는 문장은 버립니다.
+  버림: "정성을 담아 최선을 다합니다" / "한 끼의 식사가 특별해지도록"
+  남김: "3년째 같은 농장에서만 받습니다"
+
+0-3. 쓰지 않는 표현
+  추상명사: 진심, 정성, 최선, 특별한 한 끼, 감동, 여정, 철학
+  형용사 쌓기: 깊고 진한, 부드럽고 촉촉한, 신선하고 건강한
+  명사로 문장 끝내기: "속 편한 한 그릇", "믿고 먹는 우리 동네 맛집"
+  대구·대칭: "맛은 깊게, 속은 편하게"
+  세 개 나열: "A, B, 그리고 C"
+  과한 공손: ~드릴게요, ~해보시는 건 어떠세요
+  브로셔 말투: 저희는 ~을 추구합니다
+  유행어: 인생○○, 찐, 갓성비, 미쳤다
+  근거 없는 강조: 많은 분들이, 극찬, 입소문
+  이모지와 장식 기호
+
+0-4. 문장마다 '걸리는 것'을 하나 넣는다
+숫자(12년, 5번, 새벽 5시) / 고유명사(동네, 메뉴 이름) / 손님이 한 말 그대로 / 사장님이 감수하는 불편("손이 많이 가서 뺄까 고민했습니다") 중 최소 하나.
+
+0-5. 소리 내어 읽기
+사장님이 손님 앞에서 말한다고 상상해 어색하면 다시 씁니다.
+  어색함: "속이 편안한 건강한 한 끼를 제공합니다"
+  자연스러움: "먹고 나서 속 안 불편하시라고 쌀면 씁니다"
+
+0-6. 문장 길이를 섞는다
+모두 비슷한 길이면 AI 티가 납니다. 아주 짧은 문장을 중간에 넣습니다.
+  예: "튀김은 미리 안 해둡니다. 주문 들어오면 그때 튀겨요. 좀 걸립니다. 그래도 그게 맛있으니까요."
+
+0-7. 말투는 고르는 것이 아니라 입력값에서 꺼낸다
+가게마다 사장님 말투가 다릅니다. 모든 가게가 같은 말투면 그것도 AI 티입니다. 문구를 쓰기 전에 아래를 관찰해 사장님 말투를 먼저 정합니다.
+  · 자기를 뭐라 부르는가 (저 / 저희 / 우리 / 가게 이름)
+  · 문장을 어떻게 끝내는가 (~습니다 / ~해요 / ~죠 / ~거든요 / 느낌표)
+  · 문장이 긴가 짧은가
+  · 자주 쓰는 단어나 말버릇
+단서는 '한마디', '굳이 하는 일'의 자유 입력, 기존 문구에 있습니다. 단서가 거의 없을 때만 담백한 ~습니다체로 씁니다.
+
+【이론 1】배민 손님의 상태
+지금 당장 배고픈 사람입니다. 인사말·회사 소개·사장님 사정으로 시작하면 읽지 않습니다. 손님이 얻는 것부터 말합니다. 쓰는 요소는 누구(우리 가게를 한 문장으로) + 무엇(대표 메뉴) + 왜(우리만의 고집) 셋입니다.
+
+【이론 2】'왜'의 공식
+행동 + 그 행동을 하는 이유(손님을 향한). "정성을 다하겠습니다"는 행동도 이유도 없어 실격. "육수를 매일 새로 끓입니다. 어제 육수로는 손님 속을 편하게 못 하니까요"는 합격.
+
+【이론 3】신뢰 근거 순위 (입력값에 있는 것만)
+1 외부 성과(방송, 순위, 판매량, 수상) → 2 경력·업력 → 3 재료·공정 → 4 사장님 약속 → 5 손님의 말.
+1순위가 없으면 2순위부터. 3·4순위만으로도 좋은 문구가 나옵니다. 입력값에 없는 숫자·성과·'국내 유일'·'1위'는 절대 만들지 않습니다.
+
+【이론 4】알림 첫 줄 5유형 (3안은 서로 다른 유형으로)
+① 통념 뒤집기 ② 숫자 증명 ③ 굳이 하는 수고 ④ 손님의 말 ⑤ 지금 이득
+
+【이론 5】콘텐츠보드 4컷의 역할 (배민은 최대 4개)
+1컷 만드는 사람 — 사장님 얼굴이나 조리하는 손
+2컷 대표 메뉴 — 한 그릇 클로즈업
+3컷 굳이 하는 수고 — 조리 과정, GIF 권장
+4컷 같이 시킬 이유 — 사이드나 리뷰 선물
+컷마다 '찍을 것' 한 줄과 문구 2안을 씁니다.
+
+【이론 6】긴 글의 흐름 (알림 본문)
+멈추게 하기 → 공감 사기 → 궁금하게 만들기 → 설득하기(무엇+왜) → 행동 유도.
+단계마다 별도 문장으로 씁니다. 배달 지연 같은 안내는 맨 끝.
+
+【이론 7】시즌
+시즌이 입력되면 그 시즌에 손님이 배달 앱을 켜는 진짜 이유를 먼저 정하고 3안 중 2안에 반영합니다. (추석·설=명절 음식에 물림 / 환절기=몸보신 / 여름=입맛 없음 / 수능=수험생 가족의 보상 심리)
+
+【규칙】
+· 문장을 쓸 때마다 이론 0을 먼저 확인합니다. 이론 0을 어긴 문장은 다른 이론을 다 지켜도 실패입니다.
+· 존댓말 구어체, 어미는 다양하게.
+· 리뷰가 여러 건이면 반복되는 말을 찾습니다. 2건 이상에 나오는 말이 1순위 매력 후보의 근거입니다. 리뷰를 인용할 땐 맞춤법만 고치고 말투는 그대로 둡니다.
+· 기존 문구 중 좋은 문장은 갈아엎지 말고 살리며 [원본 유지] 표시를 붙입니다.
+· 결과에 마케팅 용어(후킹, USP, 톤앤매너)를 쓰지 않습니다. 사장님이 읽는 글입니다.
+· 사장님 답을 기다려야 하는 자리에서는 반드시 멈춥니다. 답 전에 다음 단계를 쓰지 않습니다.
+
+【진행 순서】
+${mode==='deep'?`0단계 — 강점 찾기 (이 대화는 여기서 시작합니다)
+입력값을 읽고 꼬리질문을 한 번에 하나씩, 최대 5개 합니다. 의견이 아니라 사실을 묻습니다.
+  예) "단골이 다른 집 대신 우리 집에 오는 이유를 딱 하나만 꼽으면요?"
+      "손님이 실망했던 적이 있다면 무엇 때문이었나요?"
+      "동네 다른 가게가 못 따라 하는 게 있다면요?"
+      "아침에 가게 와서 제일 먼저 하는 일은요?"
+답이 짧거나 "모르겠다"면 더 쉬운 말로 한 번만 다시 묻고 넘어갑니다.
+끝나면 [강점 시트]를 씁니다. "우리 가게는 ___한 손님을 위한 ___입니다" 한 줄, 강점 3개(각각 어느 답변·리뷰에서 나왔는지 표시), 손님이 우리를 찾는 이유 한 줄. 강점이 2개뿐이면 2개로 끝내고 그렇다고 말합니다.
+그리고 "이 한 줄로 문구를 만들까요? 고칠 부분이 있으면 말씀해 주세요"라고 묻고 멈춥니다.
+
+1단계 — 재료 정리와 매력 후보`:`1단계 — 재료 정리와 매력 후보 (이 대화는 여기서 시작합니다)`}
+· 재료표를 씁니다. 누구·무엇·왜, 신뢰 근거(있는 순위만), 리뷰에서 반복된 말, 읽어낸 사장님 말투. 쉬운 말로 짧게.
+· 매력 후보 3개를 씁니다. 각각 [유형], 손님 눈을 멈추게 할 한 줄, 근거(어느 답변·리뷰), "이럴 때 좋아요" 한 줄.${mode==='deep'?' 강점 시트의 한 줄이 1번 후보입니다.':''}
+· "몇 번으로 할까요? 번호만 답하셔도 됩니다"라고 묻고 멈춥니다.
+
+2단계 — 결과 4종
+사장님이 번호를 고른 뒤 아래 형식으로 씁니다.
+
+【출력 형식】
+덩어리마다 위에 '━━ 여기부터 복사 ━━'를 쓰고 아래에 글자 수를 적습니다.
+A. 가게 알림 첫 줄 3안 — 고른 매력이 1안. 각 안에 [유형]과 글자 수.
+B. 가게 알림 본문 1안 — A의 1안으로 시작, 멈공궁설행, 이벤트가 있으면 선물 이름을 콕 집어.
+C. 콘텐츠보드 4컷 — 컷마다 역할 / 찍을 것 / 문구 2안(두 줄씩).
+D. 가게 소개글 1안 — 누구 → 무엇 → 왜. 신뢰 근거는 끝에 목록으로.
+E. 확인해 주세요 — 문구에 들어간 숫자와 사실 목록(사장님 확인용), [원본 유지] 문장, 글자 수 초과 여부, 지어낸 것이 없음을 확인.
+
+【자가검수】출력 전에 반드시 실행
+A~D를 쓴 뒤 그대로 내보내지 않습니다. 쓴 모든 문장을 아래로 검사하고 걸리는 문장은 다시 씁니다. 검사 과정은 보여주지 않고 고친 결과만 냅니다.
+1 옆 가게 테스트에 걸리는 문장이 있는가 → 버리고 다시
+2 0-3의 금지 표현이 있는가 → 삭제하고 다시
+3 문장마다 숫자·고유명사·손님 말 중 하나가 있는가 → 없으면 넣기
+4 사장님이 입으로 말할 수 있는가 → 아니면 다시
+5 문장 길이가 전부 비슷한가 → 짧은 문장 섞기
+6 사장님이 준 표현을 괜히 다듬지 않았는가 → 원래 말로 되돌리기
+7 입력값에 없는 숫자나 성과를 만들지 않았는가
+그리고 E 마지막에 "이 문구는 사장님이 주신 말 중 〈 〉에서 가져왔습니다" 한 줄을 더합니다.
+마지막 줄: "다른 버전을 원하시면 '다시', 말투를 바꾸려면 '담백하게'처럼 말씀해 주세요."
+
+【입력값】
+· 가게 이름: ${D.shop||'(비움)'}
+· 동네: ${D.area||'(비움)'}
+· 업종: ${D.cat||'(비움)'}
+· 대표 메뉴: ${D.menu||'(비움)'}
+· 손님 리뷰:
+${D.rv.length?D.rv.map(r=>'  - '+r).join('\n'):'  (비움)'}
+· 굳이 직접 하는 일: ${D.eff.length?D.eff.join(', '):'(비움)'}${D.effD?' / '+D.effD:''}
+· 자랑해도 되는 기록: ${D.rec.length?D.rec.join(', '):'(비움)'}${D.recD?' / '+D.recD:''}
+· 이벤트·리뷰 선물: ${D.ev==='있어요'?(D.evD||'있음'):'없음'}
+· 손님께 하고 싶은 한마디: ${D.msg||'(비움)'}
+
+비어 있는 항목은 없는 것으로 보고 지어내지 않습니다. 위 재료만으로 시작하세요.`;
+
+function build(m){
+  mode=m; save();
+  const t=P();
+  $('#ptext').textContent=t;
+  $('#plen').textContent=t.length.toLocaleString()+'자';
+  $('#pmode').textContent=m==='deep'?'강점 찾기 + 문구':'문구 만들기';
+  $('#p3').innerHTML=m==='deep'?'<b>AI가 꼬리질문을 합니다.</b> 편하게 답하시면 돼요':'<b>AI가 매력 후보 3개를 보여줘요.</b> 번호만 고르시면 돼요';
+  go(3);
+}
+async function copyPrompt(){
+  const t=$('#ptext').textContent;
+  try{await navigator.clipboard.writeText(t);toast('복사됐어요. AI에 붙여넣으세요');}
+  catch(e){
+    const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';
+    document.body.appendChild(a);a.select();
+    try{document.execCommand('copy');toast('복사됐어요. AI에 붙여넣으세요');}
+    catch(_){toast('복사가 안 돼요. 길게 눌러 복사해 주세요');}
+    a.remove();
+  }
+}
+draw();
+</script>
+</body>
+</html>
