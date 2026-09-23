@@ -556,11 +556,22 @@ function tone(){
   return yo>da ? 'yo' : 'da';
 }
 const T=()=>tone()==='yo'
- ? {ip:'이에요',hap:'해요',mand:'만들어요',ssm:'써요',dr:'드려요',im:'입니다'}
- : {ip:'입니다',hap:'합니다',mand:'만듭니다',ssm:'씁니다',dr:'드립니다',im:'입니다'};
+ ? {yo:true, ip:'이에요',hap:'해요',mand:'만들어요',ssm:'써요',dr:'드려요',im:'이에요',reason:'이유가 있어요',saidline:'손님들이 자주 하시는 말이에요'}
+ : {yo:false,ip:'입니다',hap:'합니다',mand:'만듭니다',ssm:'씁니다',dr:'드립니다',im:'입니다',reason:'이유가 있습니다',saidline:'손님들이 자주 하시는 말입니다'};
 /* 사장님 문장 끝을 살짝 정리 (내용은 건드리지 않음) */
 const trim1=s=>String(s||'').trim().replace(/[.。]+$/,'');
 const shortest=a=>a.slice().sort((x,y)=>x.length-y.length)[0];
+/* 받침 판별 — 조사를 틀리지 않게 */
+function jong(w){
+  w=String(w||'').trim().replace(/[)\]}"'’”」』.!?]+$/,'');
+  if(!w) return true;
+  const ch=w.slice(-1), c=ch.charCodeAt(0);
+  if(c>=0xAC00&&c<=0xD7A3) return (c-0xAC00)%28!==0;
+  if(/[0-9]/.test(ch)) return '013678'.indexOf(ch)>=0;
+  if(/[a-zA-Z]/.test(ch)) return !'aeiouryweAEIOURYWE'.includes(ch);
+  return true;
+}
+const J=(w,a,b)=>w+(jong(w)?a:b);
 
 function generate(){
   save();
@@ -569,6 +580,7 @@ function generate(){
   const eff2=trim1(D.eff.find(x=>x!==D.eff[0]))||trim1(D.eff[1]);
   const menu=trim1(D.menu)||'대표 메뉴';
   const shop=trim1(D.shop)||'저희 가게';
+  const area=trim1(D.area);
   const rec=trim1(D.recD);
   const rv=D.rv.map(trim1).filter(Boolean);
   const gift=D.ev==='있어요'?trim1(D.evD):'';
@@ -582,23 +594,33 @@ function generate(){
   if(gift) firsts.push({t:'지금 이득', v:gift});
   if(msg&&firsts.length<3) firsts.push({t:'사장님 한마디', v:msg});
   firsts.slice(0,3).forEach((f,n)=>b.push({
-    title:`가게 알림 첫 줄 ${n+1}안 · ${f.t}`, where:WHERE.first, max:30, body:f.v}));
+    title:'가게 알림 첫 줄 '+(n+1)+'안 · '+f.t, where:WHERE.first, max:30, body:f.v}));
 
-  /* 알림 본문 — 멈추기 → 공감 → 궁금 → 설득 → 행동 */
-  const L=[];
-  if(firsts[0]) L.push(firsts[0].v+'.');
-  if(rv[1]) L.push('','손님들이 "'+rv[1]+'" 하고 말씀해 주십니다.');
-  else if(rv[0]) L.push('','손님들이 "'+rv[0]+'" 하고 말씀해 주십니다.');
-  if(eff1){ L.push('','이유가 있습니다.'); L.push(eff1+'.'); }
-  if(eff2) L.push(eff2+'.');
-  if(rec) L.push('', rec+'.');
-  if(msg) L.push('', msg+'.');
-  if(gift) L.push('', gift+'.');
+  /* 알림 본문 — 멈추기 → 공감 → 궁금 → 설득 → 행동 (같은 말 두 번 안 씀) */
+  const key=s=>String(s||'').replace(/[\s.,。"'“”]/g,'');
+  const seen=new Set(), L=[];
+  const add=(line,src,gap)=>{
+    if(!line) return;
+    const k=key(src===undefined?line:src);
+    if(!k||seen.has(k)) return;
+    seen.add(k);
+    if(gap&&L.length) L.push('');
+    L.push(line);
+  };
+  if(firsts[0]) add(firsts[0].v.replace(/^"|"$/g,'')+'.', firsts[0].v);
+  const voice=rv.find(r=>!seen.has(key(r)));
+  if(voice) add('"'+voice+'" — '+e.saidline+'.', voice, true);
+  const why=[eff1,eff2].filter(x=>x&&!seen.has(key(x)));
+  if(why.length){ L.push(''); L.push(e.reason+'.'); why.forEach(x=>add(x+'.',x)); }
+  add(rec+'.', rec, true);
+  add(msg+'.', msg, true);
+  add(gift+'.', gift, true);
   if(L.length) b.push({title:'가게 알림 본문', where:WHERE.body, max:500, body:L.join('\n').trim()});
 
   /* 콘텐츠보드 4컷 — 역할 고정 */
+  const me=[msg,rec].filter(Boolean);
   const cuts=[
-    {r:'1컷 · 만드는 사람', shoot:'사장님 얼굴이나 만드는 손', v: rec||(shop+'에서 직접 '+e.mand)},
+    {r:'1컷 · 만드는 사람', shoot:'사장님 얼굴이나 만드는 손', v: (me.length?shortest(me):shop+'에서 직접 '+e.mand)},
     {r:'2컷 · 대표 메뉴', shoot:'한 그릇(또는 단면) 클로즈업', v: menu},
     {r:'3컷 · 굳이 하는 수고', shoot:'만드는 과정, 움직이는 사진(GIF)도 좋아요', v: eff1||('재료부터 직접 '+e.hap)},
     {r:'4컷 · 같이 시킬 이유', shoot:'사이드 메뉴나 리뷰 선물 완성컷', v: gift||eff2||('매일 새로 '+e.mand)}
@@ -607,12 +629,12 @@ function generate(){
 
   /* 가게 소개글 — 누구 → 무엇 → 왜 */
   const I=[];
-  I.push(shop+'은 '+(trim1(D.area)?trim1(D.area)+'에서 ':'')+menu+'를 하는 집'+e.ip+'.');
+  I.push(J(shop,'은','는')+' '+(area?area+'에서 ':'')+J(menu,'을','를')+' 하는 집'+e.ip+'.');
   if(eff1) I.push('', eff1+'.');
   if(eff2) I.push(eff2+'.');
   if(msg) I.push('', msg+'.');
   if(rv[0]) I.push('', '손님 말씀 — "'+rv[0]+'"');
-  if(rec) I.push('', rec);
+  if(rec) I.push('', rec+'.');
   b.push({title:'가게 소개글', where:WHERE.intro, max:500, body:I.join('\n').trim()});
 
   $('#rttl').textContent='문구가 만들어졌어요';
