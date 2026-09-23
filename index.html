@@ -188,18 +188,18 @@ input::placeholder,textarea::placeholder{color:var(--ink4)}
   </div>
   <div class="main">
     <div>
-      <h2 class="ttl">답변 고맙습니다.<br>이제 어떻게 할까요?</h2>
-      <p class="sub" style="margin-top:9px">바쁘시면 바로 만들어도 충분히 좋은 문구가 나와요.</p>
+      <h2 class="ttl">답변 고맙습니다.<br>AI에 보낼 내용을 만들게요</h2>
+      <p class="sub" style="margin-top:9px">둘 다 <b>복사해서 붙여넣을 내용</b>을 만들어 드려요.<br>차이는 AI가 얼마나 깊게 묻느냐예요.</p>
     </div>
     <button class="pick" onclick="build('fast')">
-      <h3>바로 문구 만들기</h3>
-      <p>답변과 리뷰로 매력을 뽑아 문구 4종을 만들어요.</p>
-      <span class="t">약 1분</span>
+      <h3>빠르게 만들기</h3>
+      <p>붙여넣으면 AI가 바로 매력 후보 3개를 보여줘요. 번호만 고르면 문구 4종이 나옵니다.</p>
+      <span class="t">붙여넣기 1번 · 약 1분</span>
     </button>
     <button class="pick hi" onclick="build('deep')">
-      <h3>더 깊게 파볼까요?</h3>
-      <p>AI가 꼬리질문을 3~5개 더 해요. “우리 가게는 ___한 손님을 위한 ___입니다” 한 줄과 강점 3개가 먼저 나오고, 그게 문구의 중심이 됩니다.</p>
-      <span class="t">5분 더 · 결과가 또렷해져요</span>
+      <h3>더 깊게 파보기</h3>
+      <p>AI가 꼬리질문을 3~5개 먼저 해요. “우리 가게는 ___한 손님을 위한 ___입니다” 한 줄과 강점 3개가 나오고, 그게 문구의 중심이 됩니다.</p>
+      <span class="t">붙여넣기 1번 + 대화 5분 · 결과가 또렷해져요</span>
     </button>
     <div class="hint">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B3FF0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
@@ -235,6 +235,31 @@ input::placeholder,textarea::placeholder{color:var(--ink4)}
       <a class="btn sec" style="flex:1" href="https://claude.ai/new" target="_blank" rel="noopener">클로드 열기</a>
       <a class="btn sec" style="flex:1" href="https://chatgpt.com/" target="_blank" rel="noopener">챗GPT 열기</a>
     </div>
+    <button class="btn sec" onclick="go(4)">AI 결과 받았어요 · 배민에 넣기</button>
+  </div>
+</section>
+
+<!-- 결과 정리 -->
+<section class="scr" id="sr">
+  <div class="bar">
+    <div class="barTop">
+      <button class="back" onclick="go(3)" aria-label="뒤로"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16181A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span class="step">배민에 넣기</span><span style="width:40px"></span>
+    </div>
+  </div>
+  <div class="main">
+    <div>
+      <h2 class="ttl">AI가 준 결과를<br>여기 붙여넣으세요</h2>
+      <p class="sub" style="margin-top:9px">항목별로 나눠서, 배민 어디에 넣는지와 함께 정리해 드려요.</p>
+    </div>
+    <div class="fld">
+      <label for="rin">AI 답변 전체 붙여넣기</label>
+      <textarea id="rin" style="min-height:120px" placeholder="AI가 준 답변을 드래그해서 전부 복사한 다음 여기 붙여넣으세요."></textarea>
+    </div>
+    <button class="btn" onclick="parseResult()">정리하기</button>
+    <div id="rout" style="display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+  <div class="foot">
     <button class="txtBtn" onclick="go(0)">처음부터 다시</button>
   </div>
 </section>
@@ -249,22 +274,37 @@ const Q=[
  c:{k:'cat',o:['한식','중식','일식','분식','치킨','피자','양식','카페·디저트','기타'],one:true},
  f:[{k:'menu',l:'대표 메뉴',p:'예) 청직화우삼겹쌀국수'}]},
 {k:'rv',t:'손님 리뷰 중 보여주고 싶은 걸\n5개만 골라주세요',s:'배민·네이버 리뷰를 그대로 붙여넣으면 돼요. 3개만 있어도 괜찮아요.',e:'손님이 계산하면서 뭐라고 하세요? 기억나는 말 하나면 돼요.',
- rv:true, h:'AI가 5개를 읽고 “5건 중 3건에서 속이 편하다고 하셨어요”처럼 반복되는 말을 찾아줘요. 그게 우리 가게 강점이에요.'},
-{k:'eff',t:'번거로워도\n굳이 직접 하는 일이 있나요?',s:'사장님한텐 당연한 일이 손님한텐 자랑거리예요. 다 골라주세요.',e:'아침에 가게 와서 제일 먼저 하는 일이 뭐예요?',
- c:{k:'eff',o:['육수를 매일 새로 끓여요','재료를 직접 손질해요','소스를 직접 만들어요','반죽을 직접 해요','당일 재료만 써요','주문 들어오면 그때 조리해요','안 쓰는 재료가 있어요']},
- f:[{k:'effD',l:'조금 더 자세히 (선택)',p:'예) 새우 하나하나 손질해서 두 번 튀겨요'}],
+ rv:true, h:'AI가 5개를 읽고 “5건 중 3건에서 같은 말씀을 하셨어요”처럼 반복되는 말을 찾아줘요. 그게 우리 가게 강점이에요.'},
+{k:'eff',t:'번거로워도\n굳이 직접 하는 일이 있나요?',s:'사장님한텐 당연한 일이 손님한텐 자랑거리예요. 해당하는 걸 다 골라주세요.',e:'아침에 가게 와서 제일 먼저 하는 일이 뭐예요?',
+ c:{k:'eff',o:[]},
+ f:[{k:'effD',l:'조금 더 자세히 (선택)',p:''}],
  h:'여기 적으신 말투가 그대로 문구 말투가 돼요. 편하게 쓰시면 돼요.'},
 {k:'rec',t:'자랑해도 되는\n기록이 있나요?',s:'없으면 “아직 없어요”를 골라도 좋은 문구가 나와요.',e:'방송에 나왔거나, 몇 년째 하고 계세요?',
  c:{k:'rec',o:['방송 출연','장사한 햇수','단골·재주문 많음','지역 순위','수상','아직 없어요']},
- f:[{k:'recD',l:'숫자가 있으면 적어주세요 (선택)',p:'예) 방송 5회, 국수 경력 12년'}],
+ f:[{k:'recD',l:'숫자가 있으면 적어주세요 (선택)',p:'예) 방송 2회, 12년째 장사'}],
  h:'적으신 숫자만 씁니다. 없는 숫자는 만들지 않아요.'},
 {k:'ev',t:'지금 하는 이벤트나\n리뷰 선물이 있나요?',s:'없으면 “없어요”를 눌러주세요.',e:'리뷰 쓰면 뭐 주세요?',
  c:{k:'ev',o:['있어요','없어요'],one:true},
  f:[{k:'evD',l:'선물 이름 (선택)',p:'예) 리뷰 작성 시 닭안심튀김 증정'}]},
 {k:'msg',t:'손님께 꼭 하고 싶은\n한마디가 있나요?',s:'건너뛰어도 돼요. 편하게 말하듯 쓰시면 돼요.',e:'우리 가게가 어떤 가게였으면 좋겠어요?',
- a:{k:'msg',l:'한마디 (선택)',p:'예) 베스트셀러보다 스테디셀러가 되고 싶습니다'},
+ a:{k:'msg',l:'한마디 (선택)',p:'예) 매일 와도 물리지 않는 집이 되고 싶어요'},
  h:'이 문장이 사장님 말투를 읽는 가장 중요한 단서예요.'}
 ];
+/* 업종별 선택지 */
+const GRP={'한식':'soup','중식':'soup','일식':'soup','분식':'soup','치킨':'fry','피자':'fry','양식':'fry','카페·디저트':'cafe'};
+const EFF={
+ soup:{o:['육수를 매일 새로 끓여요','재료를 직접 손질해요','소스나 양념을 직접 만들어요','김치나 장을 직접 담가요','반찬을 매일 새로 해요','당일 재료만 써요','주문 들어오면 그때 조리해요','안 쓰는 재료가 있어요','전날 것은 안 팔아요'],
+      p:'예) 육수는 12시간 고아요'},
+ fry:{o:['반죽을 직접 해요','고기를 직접 손질해요','소스를 직접 만들어요','기름을 자주 갈아요','주문 들어오면 그때 튀겨요','당일 재료만 써요','안 쓰는 재료가 있어요','전날 것은 안 팔아요'],
+      p:'예) 반죽은 그날 아침에 쳐요'},
+ cafe:{o:['매일 아침에 구워요','반죽을 직접 만들어요','크림이나 잼을 직접 만들어요','제철 과일만 써요','원두를 갓 볶은 것만 써요','색소나 향료를 안 써요','전날 것은 안 팔아요','하루 만드는 양이 정해져 있어요','주문 들어오면 그때 만들어요','우유나 버터를 좋은 걸 써요'],
+      p:'예) 크림은 주문 들어오면 그때 짜요'},
+ etc:{o:['재료를 직접 손질해요','소스나 양념을 직접 만들어요','매일 아침에 새로 준비해요','당일 재료만 써요','주문 들어오면 그때 만들어요','안 쓰는 재료가 있어요','전날 것은 안 팔아요','하루 만드는 양이 정해져 있어요'],
+      p:'예) 이것만은 꼭 직접 합니다'}
+};
+const MENU_P={soup:'예) 청직화우삼겹쌀국수',fry:'예) 마늘간장 치킨',cafe:'예) 바스크 치즈케이크',etc:'예) 제일 잘 나가는 메뉴'};
+const grp=()=>GRP[D.cat]||'etc';
+
 const D={shop:'',area:'',cat:'',menu:'',rv:[],eff:[],effD:'',rec:[],recD:'',ev:'',evD:'',msg:''};
 let i=0, easy=false, mode='fast';
 const $=s=>document.querySelector(s), esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -274,11 +314,18 @@ function go(n,step){
   if(n===0){$('#s0').classList.add('on');}
   else if(n===1){i=step??0;easy=false;draw();$('#sq').classList.add('on');}
   else if(n===2){$('#sd').classList.add('on');}
+  else if(n===4){$('#sr').classList.add('on');}
   else {$('#sp').classList.add('on');}
   const m=document.querySelector('.scr.on .main'); if(m)m.scrollTop=0;
 }
 function draw(){
   const q=Q[i];
+  if(q.k==='eff'){                       // 업종에 맞는 선택지로 교체
+    const g=EFF[grp()];
+    q.c.o=g.o; q.f[0].p=g.p;
+    D.eff=D.eff.filter(x=>g.o.includes(x));   // 업종 바꿨을 때 남은 선택 정리
+  }
+  if(q.k==='menu') q.f[0].p=MENU_P[grp()];
   $('#qn').textContent=(i+1)+' / 7';
   $('#qbar').style.width=Math.round((i+1)/7*100)+'%';
   let h=`<div><h2 class="ttl">${esc(easy?q.e:q.t).replace(/\n/g,'<br>')}</h2><p class="sub" style="margin-top:9px">${esc(q.s)}</p></div>`;
@@ -302,7 +349,10 @@ function draw(){
 $('#qmain').addEventListener('click',e=>{
   const c=e.target.closest('.chip'); if(!c)return;
   const box=c.parentElement, k=box.dataset.k, v=c.textContent.trim();
-  if(box.dataset.one==='true'){box.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');D[k]=v;}
+  if(box.dataset.one==='true'){
+    box.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');D[k]=v;
+    if(k==='cat'){const m=document.getElementById('menu'); if(m)m.placeholder=MENU_P[grp()];}
+  }
   else{c.classList.toggle('on');D[k]=[...box.querySelectorAll('.chip.on')].map(x=>x.textContent.trim());}
 });
 function drawRv(){
@@ -395,11 +445,11 @@ const P=()=>`당신은 배달의민족 가게 화면 카피라이팅 전문가�
 ① 통념 뒤집기 ② 숫자 증명 ③ 굳이 하는 수고 ④ 손님의 말 ⑤ 지금 이득
 
 【이론 5】콘텐츠보드 4컷의 역할 (배민은 최대 4개)
-1컷 만드는 사람 — 사장님 얼굴이나 조리하는 손
-2컷 대표 메뉴 — 한 그릇 클로즈업
-3컷 굳이 하는 수고 — 조리 과정, GIF 권장
-4컷 같이 시킬 이유 — 사이드나 리뷰 선물
-컷마다 '찍을 것' 한 줄과 문구 2안을 씁니다.
+1컷 만드는 사람 — 사장님 얼굴이나 만드는 손
+2컷 대표 메뉴 — 클로즈업 (국물류는 한 그릇, 베이커리는 단면, 음료는 잔)
+3컷 굳이 하는 수고 — 만드는 과정, GIF 권장
+4컷 같이 시킬 이유 — 사이드·세트·리뷰 선물
+컷마다 '찍을 것' 한 줄과 문구 2안을 씁니다. 업종에 맞게 구체적으로 씁니다. 예를 들어 디저트·카페라면 3컷은 반죽이나 크림 작업, 4컷은 음료와의 조합이 자연스럽습니다.
 
 【이론 6】긴 글의 흐름 (알림 본문)
 멈추게 하기 → 공감 사기 → 궁금하게 만들기 → 설득하기(무엇+왜) → 행동 유도.
@@ -488,6 +538,51 @@ async function copyPrompt(){
     catch(_){toast('복사가 안 돼요. 길게 눌러 복사해 주세요');}
     a.remove();
   }
+}
+/* ---------- AI 결과 정리 ---------- */
+const SLOT=[
+ {re:/알림\s*첫\s*줄/, name:'가게 알림 첫 줄', where:'배민사장님광장 → 가게 정보 → 가게 알림의 첫 줄', max:30},
+ {re:/알림\s*본문|가게\s*알림(?!\s*첫)/, name:'가게 알림 본문', where:'가게 알림에서 첫 줄 아래로 이어 붙이세요', max:500},
+ {re:/4\s*컷|콘텐츠\s*보드|콘텐츠보드/, name:'콘텐츠보드 4컷', where:'가게 정보 → 가게 소개(콘텐츠보드), 사진 4장에 각각', max:0},
+ {re:/소개글/, name:'가게 소개글', where:'가게 정보 → 가게 소개의 소개글 칸', max:500},
+ {re:/확인해\s*주세요|검수/, name:'확인할 것', where:'등록 전에 숫자와 사실을 직접 확인하세요', max:0}
+];
+function parseResult(){
+  const raw=$('#rin').value.trim();
+  const out=$('#rout');
+  if(!raw){toast('먼저 AI 답변을 붙여넣어 주세요');return;}
+  // A. / B. 같은 항목 머리글로 자르고, 없으면 복사 표시로 자름
+  let parts=raw.split(/\n(?=\s*[A-E]\s*[.)]\s*\S)/).map(s=>s.trim()).filter(Boolean);
+  if(parts.length<2) parts=raw.split(/[━─-]{3,}[^\n]*\n/).map(s=>s.trim()).filter(Boolean);
+  if(parts.length<2) parts=raw.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
+  const blocks=parts.map(p=>{
+    const head=p.split('\n')[0];
+    const slot=SLOT.find(s=>s.re.test(head)) || SLOT.find(s=>s.re.test(p.slice(0,80)));
+    let body=p.replace(/^\s*[A-E]\s*[.)]\s*[^\n]*\n/,'').replace(/[━─-]{3,}[^\n]*/g,'').trim();
+    return {title: slot?slot.name:head.replace(/^[A-E]\s*[.)]\s*/,'').slice(0,28),
+            where: slot?slot.where:'', max: slot?slot.max:0, body};
+  }).filter(b=>b.body);
+  if(!blocks.length){toast('나눌 수 없었어요. 전체를 복사해 보세요');return;}
+  out.innerHTML = blocks.map((b,n)=>{
+    const len=b.body.replace(/\s/g,'').length;
+    const over = b.max && len>b.max;
+    return `<div class="box" style="background:var(--paper);border:1px solid var(--line2);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:9px">
+      <div style="font-size:15px;font-weight:700;letter-spacing:-.02em">${esc(b.title)}</div>
+      ${b.where?`<div style="font-size:12px;color:var(--mint-deep);background:var(--mint-t);padding:7px 9px;border-radius:7px;line-height:1.5">넣는 곳 · ${esc(b.where)}</div>`:''}
+      <div style="font-size:13px;line-height:1.65;white-space:pre-wrap;color:var(--ink)">${esc(b.body)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span style="font-size:12px;color:${over?'#D1242F':'var(--ink3)'}">${len}자${b.max?' / '+b.max+'자'+(over?' — 줄여야 해요':''):''}</span>
+        <button class="addBtn" data-n="${n}">복사</button>
+      </div></div>`;
+  }).join('');
+  window.__blocks=blocks;
+  out.querySelectorAll('[data-n]').forEach(btn=>btn.onclick=()=>copyText(window.__blocks[+btn.dataset.n].body));
+  toast(blocks.length+'개 항목으로 나눴어요');
+}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);toast('복사됐어요');}
+  catch(e){const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';
+    document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('복사됐어요');}catch(_){toast('길게 눌러 복사해 주세요');}a.remove();}
 }
 draw();
 </script>
